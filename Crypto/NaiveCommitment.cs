@@ -1,31 +1,32 @@
 using System.Security.Cryptography;
 using System.Text;
 
-namespace Crypto;
-
-public class NaiveCommitment
+namespace Crypto
 {
-    public static byte[] Commit(List<string> S)
+    public static class NaiveCommitment
     {
-        var totalBytes = S.SelectMany(s => Encoding.UTF8.GetBytes(s)).ToArray()!;
-        var hashBytes = Hash.Sha256(totalBytes);
-        return hashBytes;
-    }
-    public static bool Verify(byte[] commitment, int index, string m_i, List<string> proof)
-    {
-        var totalBytes = new byte[] { };
-        for (int i = 0; i < proof.Count; i++)
+        public static byte[] Commit(List<string> S)
         {
-            if (i == index)
-            {
-                totalBytes = totalBytes.Concat(Encoding.UTF8.GetBytes(m_i)).ToArray();
-            }
-            else
-            {
-                totalBytes = totalBytes.Concat(Encoding.UTF8.GetBytes(proof[i])).ToArray();
-            }
+            var totalBytes = Encoding.UTF8.GetBytes(string.Join("", S));
+            return SHA256.HashData(totalBytes);
         }
-        var hashBytes = Hash.Sha256(totalBytes);
-        return hashBytes.SequenceEqual(commitment);
+
+        public static bool Verify(byte[] commitment, int index, string m_i, List<string> proof)
+        {
+            var totalBytes = new StringBuilder();
+            for (int i = 0; i < proof.Count; i++)
+            {
+                if (i == index)
+                {
+                    totalBytes.Append(m_i);
+                }
+                else
+                {
+                    totalBytes.Append(proof[i]);
+                }
+            }
+            var hashBytes = SHA256.HashData(Encoding.UTF8.GetBytes(totalBytes.ToString()));
+            return hashBytes.SequenceEqual(commitment);
+        }
     }
 }

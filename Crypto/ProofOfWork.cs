@@ -3,20 +3,16 @@ public class ProofOfWork
 {
     public static (long, string) Mine(string data, int difficulty)
     {
-        string targetPrefix = new('0', difficulty); // Target prefix of zeros
+        string targetPrefix = new string('0', difficulty);
 
-        var counter = 0;
-        while (true)
+        for (long counter = 0; ; counter++)
         {
-            string nonce = counter.ToString(); //random.Next().ToString();
-            string blockData = data + nonce;
-            string hash = Hash.Sha256String(blockData);
+            string hash = Hash.Sha256String(data + counter);
 
             if (hash.StartsWith(targetPrefix))
             {
                 return (counter, hash);
             }
-            counter++;
         }
     }
 

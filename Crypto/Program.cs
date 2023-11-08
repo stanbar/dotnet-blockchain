@@ -4,11 +4,8 @@ using Crypto;
 
 {
     var hash1 = Hash.Sha256String("1");
-
     Debug.Assert(Hash.Sha256String("1") == Hash.Sha256String("1"));
-
     var hash2 = Hash.Sha256String("2");
-
     Debug.Assert(hash1 != hash2);
 }
 {
@@ -36,8 +33,8 @@ using Crypto;
     Debug.Assert(!NaiveCommitment.Verify(commit, 2, "Alice", S));
 }
 {
-    List<string> S = new List<string> { "Alice", "Bob", "Carol" };
-    MerkleTree tree = new MerkleTree(S);
+    List<string> S = new() { "Alice", "Bob", "Carol" };
+    MerkleTree tree = new(S);
     {
         var targetData = "Bob";
         var proof = tree.GenerateProof(targetData);

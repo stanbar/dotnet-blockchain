@@ -1,100 +1,99 @@
-namespace Crypto;
-
-public class MerkleNode
+namespace Crypto
 {
-    public string Hash { get; private set; }
-    public MerkleNode? Left { get; private set; }
-    public MerkleNode? Right { get; private set; }
-
-    public MerkleNode(string data)
+    public class MerkleNode
     {
-        Hash = Crypto.Hash.Sha256String(data);
-    }
+        public string Hash { get; }
+        public MerkleNode? Left { get; private set; }
+        public MerkleNode? Right { get; private set; }
 
-    public MerkleNode(MerkleNode left, MerkleNode right)
-    {
-        Left = left;
-        Right = right;
-        // Ensure the smaller hash is always first
-        var orderedHashes = new List<string> { left.Hash, right.Hash }.OrderBy(h => h).ToList();
-        Hash = Crypto.Hash.Sha256String(orderedHashes[0] + orderedHashes[1]);
-    }
-}
-
-public class MerkleTree
-{
-    public MerkleNode Root { get; private set; }
-
-    public MerkleTree(List<string> data)
-    {
-        List<MerkleNode> nodes = data.Select(d => new MerkleNode(d)).ToList();
-
-        while (nodes.Count > 1)
+        public MerkleNode(string data)
         {
-            List<MerkleNode> newLevel = new();
+            Hash = Crypto.Hash.Sha256String(data);
+        }
 
-            for (int i = 0; i < nodes.Count; i += 2)
+        public MerkleNode(MerkleNode left, MerkleNode right)
+        {
+            Left = left;
+            Right = right;
+            // Ensure the smaller hash is always first
+            var orderedHashes = new List<string> { left.Hash, right.Hash }.OrderBy(h => h).ToList();
+            Hash = Crypto.Hash.Sha256String(orderedHashes[0] + orderedHashes[1]);
+        }
+    }
+
+    public class MerkleTree
+    {
+        public MerkleNode Root { get; }
+
+        public MerkleTree(List<string> data)
+        {
+            var nodes = data.Select(d => new MerkleNode(d)).ToList();
+
+            while (nodes.Count > 1)
             {
-                if (i + 1 < nodes.Count)
+                var newLevel = new List<MerkleNode>();
+
+                for (int i = 0; i < nodes.Count; i += 2)
                 {
-                    newLevel.Add(new MerkleNode(nodes[i], nodes[i + 1]));
+                    if (i + 1 < nodes.Count)
+                    {
+                        newLevel.Add(new MerkleNode(nodes[i], nodes[i + 1]));
+                    }
+                    else
+                    {
+                        newLevel.Add(new MerkleNode(nodes[i], nodes[i])); // Duplicate the last node if the count is odd
+                    }
                 }
-                else
-                {
-                    newLevel.Add(new MerkleNode(nodes[i], nodes[i])); // Duplicate the last node if the count is odd
-                }
+
+                nodes = newLevel;
             }
 
-            nodes = newLevel;
+            Root = nodes.First();
         }
 
-        Root = nodes.FirstOrDefault()!;
-    }
+        public List<string> GenerateProof(string data)
+        {
+            var proof = new List<string>();
+            GenerateProof(Root, Hash.Sha256String(data), proof);
+            return proof;
+        }
 
-    public List<string> GenerateProof(string data)
-    {
-        List<string> proof = new();
-        GenerateProof(Root, Hash.Sha256String(data), proof);
-        return proof;
-    }
+        private bool GenerateProof(MerkleNode node, string targetHash, List<string> proof)
+        {
+            if (node == null)
+                return false;
 
-    private bool GenerateProof(MerkleNode node, string targetHash, List<string> proof)
-    {
-        if (node == null)
+            if (node.Left == null && node.Right == null)
+            {
+                return node.Hash == targetHash;
+            }
+
+            if (GenerateProof(node.Left!, targetHash, proof))
+            {
+                proof.Add(node.Right!.Hash);
+                return true;
+            }
+            else if (GenerateProof(node.Right!, targetHash, proof))
+            {
+                proof.Add(node.Left!.Hash);
+                return true;
+            }
+
             return false;
-
-        if (node.Left == null && node.Right == null)
-        {
-            return node.Hash == targetHash;
         }
 
-        if (GenerateProof(node.Left!, targetHash, proof))
+        public static bool VerifyProof(string data, List<string> proof, string rootHash)
         {
-            proof.Add(node.Right!.Hash);
-            return true;
-        }
-        else if (GenerateProof(node.Right!, targetHash, proof))
-        {
-            proof.Add(node.Left!.Hash);
-            return true;
-        }
+            var currentHash = Hash.Sha256String(data);
 
-        return false;
+            foreach (var hash in proof)
+            {
+                // Order the current hash and proof hash lexicographically
+                var orderedHashes = new List<string> { currentHash, hash }.OrderBy(h => h).ToList();
+                currentHash = Hash.Sha256String(orderedHashes[0] + orderedHashes[1]);
+            }
+
+            return currentHash == rootHash;
+        }
     }
-
-    public static bool VerifyProof(string data, List<string> proof, string rootHash)
-    {
-        string currentHash = Hash.Sha256String(data);
-
-        foreach (var hash in proof)
-        {
-            // Order the current hash and proof hash lexicographically
-            var orderedHashes = new List<string> { currentHash, hash }.OrderBy(h => h).ToList();
-            currentHash = Hash.Sha256String(orderedHashes[0] + orderedHashes[1]);
-        }
-
-        return currentHash == rootHash;
-    }
-
-
 }
