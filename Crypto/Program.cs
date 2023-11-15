@@ -1,55 +1,66 @@
-﻿using System.Diagnostics;
+﻿// See https://aka.ms/new-console-template for more information
+using System.Diagnostics;
+using System.Security.Cryptography;
 using System.Text;
 using Crypto;
 
-{
-    var hash1 = Hash.Sha256String("1");
-    Debug.Assert(Hash.Sha256String("1") == Hash.Sha256String("1"));
-    var hash2 = Hash.Sha256String("2");
+{ // should pass
+    var sha256 = SHA256.Create();
+    var hash1 = sha256.ComputeHash(new byte[] { 0b0});
+    Console.WriteLine(BitConverter.ToString(hash1).Replace("-", "").ToLowerInvariant());
+    var hash2 = sha256.ComputeHash(new byte[] { 0b1});
+    Console.WriteLine(BitConverter.ToString(hash2).Replace("-", "").ToLowerInvariant());
     Debug.Assert(hash1 != hash2);
 }
-{
-    var S = new List<string> { "Alice", "Bob", "Carol" };
-    var commit = NaiveCommitment.Commit(S);
-    Debug.Assert(NaiveCommitment.Verify(commit, 0, "Alice", S));
-    Debug.Assert(NaiveCommitment.Verify(commit, 1, "Bob", S));
+{ // should pass
+    var S = new string[] { "Alice", "Bob", "Carol", "David" };
+    var comm = NaiveCommitment.Commit(S);
+    Console.WriteLine(comm.Length);
+    var accept = NaiveCommitment.Verify(comm, 1, "Bob", S);
+    Debug.Assert(accept == true);
+}
+{ // should fail
+    var S = new string[] { "Alice", "Bob", "Carol", "David" };
+    var comm = NaiveCommitment.Commit(S);
+    var accept = NaiveCommitment.Verify(comm, 2, "Bob", S);
+    Debug.Assert(accept == false);
 }
 {
+    List<string> data = new() { "Alice", "Bob", "Carol", "David" };
+    MerkleTree tree = new(data);
 
-    var S = new List<string> { "Alice", "Bob", "Carol" };
-    var commit = NaiveCommitment.Commit(S);
-    Debug.Assert(NaiveCommitment.Verify(commit, 0, "Alice", S));
-    Debug.Assert(NaiveCommitment.Verify(commit, 1, "Bob", S));
-    Debug.Assert(NaiveCommitment.Verify(commit, 2, "Carol", S));
-}
-{
-    var S = new List<string> { "Alice", "Bob", "Carol" };
-    var commit = NaiveCommitment.Commit(S);
-    Debug.Assert(NaiveCommitment.Verify(commit, 0, "Alice", S));
-    Debug.Assert(NaiveCommitment.Verify(commit, 1, "Bob", S));
-    Debug.Assert(NaiveCommitment.Verify(commit, 2, "Carol", S));
-    Debug.Assert(!NaiveCommitment.Verify(commit, 0, "Bob", S));
-    Debug.Assert(!NaiveCommitment.Verify(commit, 1, "Carol", S));
-    Debug.Assert(!NaiveCommitment.Verify(commit, 2, "Alice", S));
-}
-{
-    List<string> S = new() { "Alice", "Bob", "Carol" };
-    MerkleTree tree = new(S);
     {
         var targetData = "Bob";
         var proof = tree.GenerateProof(targetData);
-        Debug.Assert(MerkleTree.VerifyProof(targetData, proof, tree.Root.Hash));
-        Debug.Assert(MerkleTree.VerifyProof("Alice", proof, tree.Root.Hash) == false);
+        var isValidProof = MerkleTree.VerifyProof(targetData, proof, tree.Root.Hash);
+        Debug.Assert(isValidProof == true);
+    }
+    {
+        var targetData = "Bob";
+        var proof = tree.GenerateProof(targetData);
+        var verifyData = "Alice";
+        var isValidProof = MerkleTree.VerifyProof(verifyData, proof, tree.Root.Hash);
+        Debug.Assert(isValidProof == false);
+
     }
 }
-{
-    var (proofOfWork,hash) = ProofOfWork.Mine("Hello World", 4);
-    Console.WriteLine($"Proof of work: {proofOfWork} Hash: {hash}");
+{ // Proof of work
+    var proofOfWork = ProofOfWork.Mine("Hello World", 4);
+    Console.WriteLine(proofOfWork);
 }
-{
+{ // Signatures pass
     var (privateKey, publicKey) = Signatures.Gen();
     var data = Encoding.UTF8.GetBytes("Hello World");
     var signature = Signatures.Sign(privateKey, data);
     var verified = Signatures.Verify(publicKey, data, signature);
     Debug.Assert(verified == true);
+}
+
+{ // Signatures fail
+    var (privateKey, publicKey) = Signatures.Gen();
+    var data = Encoding.UTF8.GetBytes("Hello World");
+    var signature = Signatures.Sign(privateKey, data);
+    data = Encoding.UTF8.GetBytes("Bye World");
+    var verified = Signatures.Verify(publicKey, data, signature);
+    Debug.Assert(verified == false);
 }

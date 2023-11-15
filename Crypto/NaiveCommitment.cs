@@ -1,32 +1,35 @@
 using System.Security.Cryptography;
 using System.Text;
 
-namespace Crypto
+namespace Crypto;
+internal class NaiveCommitment
 {
-    public static class NaiveCommitment
+    public static byte[] Commit(string[] input)
     {
-        public static byte[] Commit(List<string> S)
-        {
-            var totalBytes = Encoding.UTF8.GetBytes(string.Join("", S));
-            return SHA256.HashData(totalBytes);
-        }
+        using var sha256 = SHA256.Create();
 
-        public static bool Verify(byte[] commitment, int index, string m_i, List<string> proof)
+        var totalBytes = new byte[]{};
+        for (int i = 0; i < input.Length; i++)
         {
-            var totalBytes = new StringBuilder();
-            for (int i = 0; i < proof.Count; i++)
-            {
-                if (i == index)
-                {
-                    totalBytes.Append(m_i);
-                }
-                else
-                {
-                    totalBytes.Append(proof[i]);
-                }
-            }
-            var hashBytes = SHA256.HashData(Encoding.UTF8.GetBytes(totalBytes.ToString()));
-            return hashBytes.SequenceEqual(commitment);
+            var m_i = input[i];
+            totalBytes = totalBytes.Concat(Encoding.UTF8.GetBytes(m_i)).ToArray();
         }
+        var hash = sha256.ComputeHash(totalBytes);
+        return hash;
+    }
+
+    public static bool Verify (byte[] commitment, int index, string m_i, string[] proof)
+    {
+        using var sha256 = SHA256.Create();
+
+        var totalBytes = new byte[]{};
+        for (int i = 0; i < proof.Length; i++)
+        {
+            var m = i == index ? m_i : proof[i];
+            totalBytes = totalBytes.Concat(Encoding.UTF8.GetBytes(m)).ToArray();
+        }
+        var hash = sha256.ComputeHash(totalBytes);
+        // compare byte arrays
+        return hash.AsSpan().SequenceEqual(commitment);
     }
 }
