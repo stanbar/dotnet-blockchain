@@ -3,7 +3,7 @@
     var archive = new Blockchain.Archive<Simple.Transaction>("simpleArchive");
     var blockchain = new Blockchain.BC<Simple.Transaction>(archive);
     var state = new Simple.State();
-    var blocksPerSeconds = 5;
+    var blocksPerSeconds = 3;
     var miner = new Miner();
     var node = new Blockchain.Node<Simple.Transaction, Simple.State>(blockchain, state, miner, blocksPerSeconds: blocksPerSeconds);
     var coinbaseFactory = () => Simple.Transaction.Coinbase("Alice");
@@ -24,7 +24,7 @@
     var blockchain = new Blockchain.BC<Bitcoin.Transaction>(archive);
     var state = new Bitcoin.State();
     var miner = new Miner();
-    var blocksPerSeconds = 1;
+    var blocksPerSeconds = 3;
     var node = new Blockchain.Node<Bitcoin.Transaction, Bitcoin.State>(blockchain, state, miner, blocksPerSeconds: blocksPerSeconds);
     var coinbaseFactory = () => Bitcoin.Transaction.Coinbase("Alice");
     _ = node.Start(coinbaseFactory);
