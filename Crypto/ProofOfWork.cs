@@ -1,24 +1,22 @@
 namespace Crypto;
-public class ProofOfWork
-{
-    // Static method that performs mining to find a hash starting with a specific number of leading zeros.
-    public static (long, string) Mine(string data, int difficulty)
+public class ProofOfWork {
+    public static long Mine(string data, int difficulty)
     {
-        // Define the target prefix - a string of 'difficulty' number of zeros.
-        string targetPrefix = new string('0', difficulty);
+        string targetPrefix = new('0', difficulty); // Target prefix of zeros
 
-        // Incrementally search for a hash that matches the target prefix.
-        for (long counter = 0; ; counter++)  // Infinite loop that increments the counter.
+        var counter = 0;
+        while(true)
         {
-            // Concatenate the input data with the counter value and compute the SHA256 hash.
-            string hash = Hash.Sha256String(data + counter);
+            string nonce = counter.ToString(); //random.Next().ToString();
+            string blockData = data + nonce;
+            string hash = Hash.Sha256String(Hash.Sha256String(blockData));
 
             // Check if the hash starts with the required number of leading zeros (i.e., matches the target).
             if (hash.StartsWith(targetPrefix))
             {
-                // If a valid hash is found, return the counter value and the resulting hash.
-                return (counter, hash);
+                return counter;
             }
+            counter++;
         }
     }
 }
