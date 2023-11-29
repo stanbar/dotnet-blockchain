@@ -1,11 +1,10 @@
 # Cryptocurrencies and Blockchain Technologies
 
-This reposiroty is based on the content presented in [Cryptocurrencies and Blockchain Technologies](https://cs251.stanford.edu/lectures/lecture1.pdf) from Stanford University.
+This reposiroty is based on the content presented in [Cryptocurrencies and Blockchain Technologies](https://cs251.stanford.edu/syllabus.html) from Stanford University.
 
 This repository contains all the code created during the live-coding during the lectures. 
 
 ## Getting Started
 
-To create the necessary projects, run the following commands:
-1. `dotnet new console -o Crypto -f net7.0`
-2. `dotnet new console -o Blockchain -f net7.0`
+1. Run the Cryto module demo `dotnet run --project Crypto`
+2. Run the Blockchain module demo `dotnet run --project Blockchain`

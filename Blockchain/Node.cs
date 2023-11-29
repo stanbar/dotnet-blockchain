@@ -53,7 +53,7 @@ where S : IState<Tx>
         var lastBlock = Blockchain.GetLatestBlock();
         var txRoot = new Crypto.MerkleTree(
             candidateTransactions.Select(tx => tx.ToString()).ToList()
-            ).Root.Hash;
+        ).Root.Hash;
 
         var candidateBlockHeader = new CandidateBlockHeader(lastBlock.ToHash(), DateTimeOffset.UtcNow.ToUnixTimeSeconds(), Difficulty, txRoot);
         var nonce = Miner.Mine(candidateBlockHeader);

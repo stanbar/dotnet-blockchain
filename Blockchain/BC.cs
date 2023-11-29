@@ -1,5 +1,6 @@
 
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Blockchain;
 
@@ -7,9 +8,27 @@ public record CandidateBlockHeader(string PreviousHash, long Timestamp, int Bits
 {
     public override string ToString() => $"{PreviousHash}{Timestamp}{Bits}{TxRoot}";
 }
-public record BlockHeader(string PreviousHash, long Timestamp, int Bits, long Nonce, string TxRoot)
+public record BlockHeader
 {
-    public BlockHeader(CandidateBlockHeader candidateBlockHeader, long nonce) : this(candidateBlockHeader.PreviousHash, candidateBlockHeader.Timestamp, candidateBlockHeader.Bits, nonce, candidateBlockHeader.TxRoot) { }
+    public string PreviousHash { get; init; }
+    public long Timestamp { get; init; }
+    public int Bits { get; init; }
+    public long Nonce { get; init; }
+    public string TxRoot { get; init; }
+
+    [JsonConstructor]
+    public BlockHeader(string previousHash, long timestamp, int bits, long nonce, string txRoot)
+    {
+        PreviousHash = previousHash;
+        Timestamp = timestamp;
+        Bits = bits;
+        Nonce = nonce;
+        TxRoot = txRoot;
+    }
+
+    public BlockHeader(CandidateBlockHeader candidateBlockHeader, long nonce)
+        : this(candidateBlockHeader.PreviousHash, candidateBlockHeader.Timestamp, candidateBlockHeader.Bits, nonce, candidateBlockHeader.TxRoot) { }
+
     public override string ToString() => $"{PreviousHash}{Timestamp}{Bits}{TxRoot}{Nonce}";
 }
 
