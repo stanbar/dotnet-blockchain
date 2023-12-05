@@ -1,5 +1,6 @@
 // https://ethervm.io/
 // https://github.com/ethereum/go-ethereum/blob/master/core/vm/instructions.go#L495
+// https://solidity-by-example.org/
 
 namespace Ethereum;
 
